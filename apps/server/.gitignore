@@ -1,0 +1,89 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Next.js
+.next/
+out/
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# Environment variables
+.env
+.env*.local
+.env.development
+.env.test
+.env.production
+!.env.example
+
+# Build and deployment outputs
+.turbo/
+.vercel/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Prisma
+packages/shared/src/generated/prisma
+packages/shared/prisma/migrations/**
+packages/shared/prisma/*.log
+
+# Testing and tooling
+coverage/
+.playwright/
+logs/
+tmp/
+temp/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Secrets and private keys
+*.pem
+*.key
+*.crt
+
+# Linear API scripts (contains sensitive API keys in usage)
+scripts/linear/*
+
+# Utility files
+docs/*
+*/docs/*
+
+# Bun
+.bun/
+bun.lockb
+
+# Cache directories
+.cache/
+.eslintcache
+.stylelintcache
+.swc/
+
+# Yarn PnP
+.pnp/
+.pnp.js
+.yarn/
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
+
+# Misc
+.netlify/
+.serverless/
+.aws-sam/
+.terraform/
+public/Primitive_file/*
+public/Primitive.html

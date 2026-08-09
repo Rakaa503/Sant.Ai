@@ -1,0 +1,784 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["Santai", "auth"]
+}
+
+/// ── auth schema — Better Auth managed tables ──────────
+
+model User {
+  id               String        @id @default(uuid())
+  email            String        @unique
+  emailVerified    Boolean       @default(false)
+  password         String?
+  username         String        @unique
+  name             String
+  image            String?
+  role             String    @default("user")
+  twoFactorEnabled Boolean   @default(false)
+  banned           Boolean   @default(false)
+  banReason        String?
+  banExpires       DateTime?
+  bio              String        @default("")
+  website          String?
+  location         String?
+  phone            String?
+  readme           String        @default("")
+  readmeType       String        @default("markdown")
+  coverImage       String?
+  studyProgram     String?
+  semester         Int?
+  pinnedProjects   String        @default("[]")
+  reputationPoints Int           @default(0)
+  level            String        @default("Newbie")
+  university       String        @default("")
+  faculty          String        @default("")
+  degreeLevel      String        @default("")
+  studentId        String        @default("")
+  enrollmentYear   Int?
+  interests        String        @default("[]")
+  skills           String        @default("[]")
+  aiPreferences    String        @default("{}")
+  researchProfile  String        @default("{}")
+  socialLinks      String        @default("{}")
+  privacySettings  String        @default("{}")
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  twoFactor        TwoFactor[]
+  ssoProviders     SSOProvider[]
+  sessions         Session[]
+  accounts         Account[]
+  followers        Follow[]    @relation("following")
+  following        Follow[]    @relation("follower")
+  ownedProjects    Project[]
+  teamMembers      TeamMember[]
+  contributions    Contribution[]
+  ideas            Idea[]
+  castVotes        Vote[]
+  comments         Comment[]
+  boards           Board[]
+  boardMemberships BoardMember[]
+  createdTasks     Task[]         @relation("createdTasks")
+  taskAssignments  TaskAssignee[]
+  uploadedAttachments Attachment[]
+  taskComments     TaskComment[]
+  activityLogs     ActivityLog[]
+
+  @@schema("auth")
+  @@map("user")
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress      String?
+  userAgent      String?
+  impersonatedBy String?
+  userId         String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@schema("auth")
+  @@map("session")
+}
+
+model Account {
+  id                   String    @id @default(uuid())
+  accountId            String
+  providerId           String
+  userId               String
+  accessToken          String?
+  refreshToken         String?
+  idToken              String?
+  accessTokenExpiresAt DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                String?
+  password             String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@schema("auth")
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id @default(uuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@schema("auth")
+  @@map("verification")
+}
+
+model TwoFactor {
+  id                      String    @id @default(uuid())
+  userId                  String
+  secret                  String
+  backupCodes             String
+  verified                Boolean   @default(true)
+  failedVerificationCount Int       @default(0)
+  lockedUntil             DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@schema("auth")
+  @@map("twoFactor")
+}
+
+model SSOProvider {
+  id             String   @id @default(uuid())
+  issuer         String
+  oidcConfig     String?
+  samlConfig     String?
+  userId         String?
+  providerId     String   @unique
+  organizationId String?
+  domain         String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user           User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@schema("auth")
+  @@map("ssoProvider")
+}
+
+/// ── Santai schema (all business tables) ─────────────
+
+model Follow {
+  id          String   @id @default(uuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  follower  User @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+  @@schema("Santai")
+}
+
+model Project {
+  id               String        @id @default(uuid())
+  title            String
+  description      String
+  problemStatement String        @default("")
+  status           String        @default("Open")
+  techStack        String        @default("")
+  demoLink         String        @default("")
+  resultSummary    String        @default("")
+  impactSummary    String        @default("")
+  creatorId        String
+  createdAt        DateTime      @default(now())
+
+  creator       User           @relation(fields: [creatorId], references: [id])
+  teamMembers   TeamMember[]
+  projectRoles  ProjectRole[]
+  contributions Contribution[]
+  comments      Comment[]
+
+  @@schema("Santai")
+}
+
+model ProjectRole {
+  id           String @id @default(uuid())
+  projectId    String
+  studyProgram String
+  required     Int    @default(1)
+  filled       Int    @default(0)
+
+  project Project @relation(fields: [projectId], references: [id])
+
+  @@schema("Santai")
+}
+
+model TeamMember {
+  id        String   @id @default(uuid())
+  projectId String
+  userId    String
+  role      String
+  joinedAt  DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@unique([projectId, userId])
+  @@schema("Santai")
+}
+
+model Idea {
+  id           String   @id @default(uuid())
+  title        String
+  description  String
+  studyProgram String   @default("")
+  userId       String
+  voteCount    Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  user      User      @relation(fields: [userId], references: [id])
+  comments  Comment[]
+  castVotes Vote[]
+
+  @@schema("Santai")
+}
+
+model Vote {
+  id     String @id @default(uuid())
+  ideaId String
+  userId String
+
+  idea  Idea @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  user  User @relation(fields: [userId], references: [id])
+
+  @@unique([ideaId, userId])
+  @@schema("Santai")
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  content   String
+  userId    String
+  ideaId    String?
+  projectId String?
+  createdAt DateTime @default(now())
+
+  user    User     @relation(fields: [userId], references: [id])
+  idea    Idea?    @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  project Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@schema("Santai")
+}
+
+model Contribution {
+  id          String   @id @default(uuid())
+  userId      String
+  projectId   String
+  points      Int
+  type        String
+  description String
+  createdAt   DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id])
+  project Project @relation(fields: [projectId], references: [id])
+
+  @@schema("Santai")
+}
+
+model Source {
+  id        String         @id @default(uuid())
+  name      String         @unique
+  type      String
+  url       String         @default("")
+  rssUrl    String         @default("")
+  status    String         @default("active")
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  articles  Article[]
+  youtube   YouTubeVideo[]
+
+  @@schema("Santai")
+}
+
+model Article {
+  id          String   @id @default(uuid())
+  sourceId    String
+  title       String
+  description String   @default("")
+  url         String   @unique
+  image       String   @default("")
+  category    String   @default("")
+  sentiment   String   @default("neutral")
+  content     String   @default("")
+  language    String   @default("id")
+  country     String   @default("id")
+  publishedAt DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  source Source @relation(fields: [sourceId], references: [id])
+
+  @@schema("Santai")
+}
+
+model YouTubeVideo {
+  id          String   @id @default(uuid())
+  videoId     String   @unique
+  sourceId    String
+  title       String
+  description String   @default("")
+  channelName String   @default("")
+  thumbnail   String   @default("")
+  views       Int      @default(0)
+  category    String   @default("")
+  language    String   @default("id")
+  country     String   @default("id")
+  publishedAt DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  source Source @relation(fields: [sourceId], references: [id])
+
+  @@schema("Santai")
+}
+
+model Keyword {
+  id        String   @id @default(uuid())
+  keyword   String   @unique
+  category  String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@schema("Santai")
+}
+
+/// ── Linear webhook events ───────────────────────────
+model LinearWebhookEvent {
+  id        String   @id @default(uuid())
+  action    String   @default("")
+  type      String   @default("")
+  payload   String   @default("{}")
+  issueId   String?
+  createdAt DateTime @default(now())
+
+  @@schema("Santai")
+  @@map("linear_webhook_event")
+}
+
+/// ── Status Center ──────────────────────────────────
+
+enum ServiceStatus {
+  Operational
+  DegradedPerformance
+  PartialOutage
+  MajorOutage
+  UnderMaintenance
+
+  @@schema("Santai")
+}
+
+enum IncidentStatus {
+  Investigating
+  Identified
+  Monitoring
+  Resolved
+
+  @@schema("Santai")
+}
+
+enum MonitorType {
+  HTTP
+  Ping
+  Port
+  SSL
+
+  @@schema("Santai")
+}
+
+model StatusService {
+  id          String        @id @default(uuid())
+  name        String
+  description String        @default("")
+  status      ServiceStatus @default(Operational)
+  order       Int           @default(0)
+  group       String        @default("")
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  monitors      Monitor[]
+  incidents     IncidentService[]
+  maintenances  MaintenanceService[]
+  history       StatusHistory[]
+
+  @@schema("Santai")
+  @@map("status_service")
+}
+
+model Monitor {
+  id            String       @id @default(uuid())
+  serviceId     String
+  name          String
+  type          MonitorType  @default(HTTP)
+  url           String
+  interval      Int          @default(60)
+  timeout       Int          @default(30)
+  method        String       @default("GET")
+  expectedCode  Int          @default(200)
+  paused        Boolean      @default(false)
+  lastCheckedAt DateTime?
+  lastStatus    String?      @default("unknown")
+  lastResponseTime Int?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  service          StatusService    @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  monitorChecks    MonitorCheck[]
+
+  @@schema("Santai")
+}
+
+model MonitorCheck {
+  id           String   @id @default(uuid())
+  monitorId    String
+  status       String   @default("unknown")
+  responseTime Int?
+  statusCode   Int?
+  error        String?
+  checkedAt    DateTime @default(now())
+
+  monitor Monitor @relation(fields: [monitorId], references: [id], onDelete: Cascade)
+
+  @@index([monitorId, checkedAt])
+  @@schema("Santai")
+}
+
+model Incident {
+  id          String         @id @default(uuid())
+  title       String
+  description String         @default("")
+  status      IncidentStatus @default(Investigating)
+  severity    String         @default("minor")
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  resolvedAt  DateTime?
+
+  services   IncidentService[]
+  updates    IncidentUpdate[]
+
+  @@schema("Santai")
+}
+
+model IncidentService {
+  incidentId String
+  serviceId  String
+
+  incident Incident     @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  service  StatusService @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@id([incidentId, serviceId])
+  @@schema("Santai")
+}
+
+model IncidentUpdate {
+  id         String         @id @default(uuid())
+  incidentId String
+  status     IncidentStatus
+  message    String
+  createdAt  DateTime       @default(now())
+
+  incident Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+
+  @@schema("Santai")
+}
+
+model Maintenance {
+  id          String   @id @default(uuid())
+  title       String
+  description String   @default("")
+  status      String   @default("scheduled")
+  scheduledAt DateTime
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  services MaintenanceService[]
+
+  @@schema("Santai")
+}
+
+model MaintenanceService {
+  maintenanceId String
+  serviceId     String
+
+  maintenance Maintenance   @relation(fields: [maintenanceId], references: [id], onDelete: Cascade)
+  service     StatusService @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@id([maintenanceId, serviceId])
+  @@schema("Santai")
+}
+
+model NotificationProvider {
+  id        String   @id @default(uuid())
+  name      String
+  type      String
+  config    String   @default("{}")
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@schema("Santai")
+}
+
+model StatusPageSettings {
+  id              String @id @default("default")
+  title           String @default("Sant.Ai Status")
+  description     String @default("Current status of Sant.Ai services.")
+  customDomain    String @default("")
+  logoUrl         String @default("")
+  faviconUrl      String @default("")
+  faviconDarkUrl  String @default("")
+  theme           String @default("light")
+  brandColor      String @default("#3b82f6")
+  showUptime      Boolean @default(true)
+  showResponseTime Boolean @default(true)
+  showHistory     Boolean @default(true)
+  historyDays     Int    @default(90)
+  publicApiAccess Boolean @default(false)
+  password        String @default("")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@schema("Santai")
+}
+
+model StatusHistory {
+  id        String   @id @default(uuid())
+  serviceId String
+  date      DateTime
+  uptime    Float    @default(100.0)
+  createdAt DateTime @default(now())
+
+  service StatusService @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@unique([serviceId, date])
+  @@schema("Santai")
+}
+
+/// ── Kanban Board ────────────────────────────────────
+
+enum Visibility {
+  Private
+  Team
+  Public
+
+  @@schema("Santai")
+}
+
+enum Priority {
+  Low
+  Medium
+  High
+  Urgent
+
+  @@schema("Santai")
+}
+
+enum BoardRole {
+  Owner
+  Admin
+  Editor
+  Viewer
+
+  @@schema("Santai")
+}
+
+model Board {
+  id          String     @id @default(uuid())
+  name        String
+  description String     @default("")
+  icon        String     @default("LayoutKanban")
+  coverImage  String?
+  visibility  Visibility @default(Private)
+  ownerId     String
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  owner     User           @relation(fields: [ownerId], references: [id])
+  columns   BoardColumn[]
+  members   BoardMember[]
+  labels    Label[]
+  tasks     Task[]
+  activity  ActivityLog[]
+
+  @@schema("Santai")
+}
+
+model BoardMember {
+  id     String   @id @default(uuid())
+  role   BoardRole @default(Editor)
+  boardId String
+  userId  String
+  joinedAt DateTime @default(now())
+
+  board Board @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id])
+
+  @@unique([boardId, userId])
+  @@schema("Santai")
+  @@map("board_member")
+}
+
+model BoardColumn {
+  id      String @id @default(uuid())
+  boardId String
+  name    String
+  order   Int    @default(0)
+  color   String @default("")
+
+  board Board @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  tasks Task[]
+
+  @@unique([boardId, order])
+  @@schema("Santai")
+  @@map("board_column")
+}
+
+model Label {
+  id      String @id @default(uuid())
+  boardId String
+  name    String
+  color   String @default("#6366f1")
+
+  board Board       @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  tasks TaskLabel[]
+
+  @@unique([boardId, name])
+  @@schema("Santai")
+}
+
+model Task {
+  id          String   @id @default(uuid())
+  boardId     String
+  columnId    String
+  title       String
+  description String   @default("")
+  priority    Priority @default(Medium)
+  dueDate     DateTime?
+  coverImage  String?
+  order       Float    @default(0)
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  board       Board           @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  column      BoardColumn     @relation(fields: [columnId], references: [id])
+  createdBy   User            @relation("createdTasks", fields: [createdById], references: [id])
+  assignees   TaskAssignee[]
+  labels      TaskLabel[]
+  checklists  Checklist[]
+  attachments Attachment[]
+  comments    TaskComment[]
+  activity    ActivityLog[]
+
+  @@index([boardId, columnId, order])
+  @@schema("Santai")
+}
+
+model TaskAssignee {
+  id     String @id @default(uuid())
+  taskId String
+  userId String
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([taskId, userId])
+  @@schema("Santai")
+  @@map("task_assignee")
+}
+
+model TaskLabel {
+  id      String @id @default(uuid())
+  taskId  String
+  labelId String
+
+  task  Task  @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  label Label @relation(fields: [labelId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, labelId])
+  @@schema("Santai")
+  @@map("task_label")
+}
+
+model Checklist {
+  id     String @id @default(uuid())
+  taskId String
+  title  String @default("Checklist")
+
+  task  Task            @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  items ChecklistItem[]
+
+  @@schema("Santai")
+}
+
+model ChecklistItem {
+  id          String  @id @default(uuid())
+  checklistId String
+  content     String
+  completed   Boolean @default(false)
+  order       Int     @default(0)
+
+  checklist Checklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+
+  @@schema("Santai")
+  @@map("checklist_item")
+}
+
+model Attachment {
+  id           String   @id @default(uuid())
+  taskId       String
+  name         String
+  url          String
+  size         Int      @default(0)
+  type         String   @default("")
+  uploadedById String
+  createdAt    DateTime @default(now())
+
+  task     Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  uploadedBy User @relation(fields: [uploadedById], references: [id])
+
+  @@schema("Santai")
+}
+
+model TaskComment {
+  id        String   @id @default(uuid())
+  content   String
+  taskId    String
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id])
+
+  @@schema("Santai")
+  @@map("task_comment")
+}
+
+model ActivityLog {
+  id        String   @id @default(uuid())
+  boardId   String
+  taskId    String?
+  actorId   String
+  action    String
+  details   String   @default("")
+  createdAt DateTime @default(now())
+
+  board Board   @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  task  Task?   @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  actor User    @relation(fields: [actorId], references: [id])
+
+  @@schema("Santai")
+  @@map("activity_log")
+}

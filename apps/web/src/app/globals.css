@@ -1,0 +1,599 @@
+@import "@radix-ui/themes/styles.css";
+
+@import "tailwindcss";
+
+@import "highlight.js/styles/github-dark.css" layer(highlight);
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ─── Animation keyframes ─── */
+@keyframes enter {
+  from { opacity: var(--tw-enter-opacity, 1); transform: translate3d(var(--tw-enter-translate-x, 0), var(--tw-enter-translate-y, 0), 0) scale3d(var(--tw-enter-scale, 1), var(--tw-enter-scale, 1), 1) rotate(var(--tw-enter-rotate, 0)); }
+}
+@keyframes exit {
+  to { opacity: var(--tw-exit-opacity, 1); transform: translate3d(var(--tw-exit-translate-x, 0), var(--tw-exit-translate-y, 0), 0) scale3d(var(--tw-exit-scale, 1), var(--tw-exit-scale, 1), 1) rotate(var(--tw-exit-rotate, 0)); }
+}
+@keyframes accordion-down {
+  from { height: 0; }
+  to { height: var(--radix-accordion-content-height); }
+}
+@keyframes accordion-up {
+  from { height: var(--radix-accordion-content-height); }
+  to { height: 0; }
+}
+@utility animate-in {
+  animation-name: enter;
+  animation-duration: 150ms;
+  --tw-enter-opacity: initial;
+  --tw-enter-scale: initial;
+  --tw-enter-rotate: initial;
+  --tw-enter-translate-x: initial;
+  --tw-enter-translate-y: initial;
+}
+@utility animate-out {
+  animation-name: exit;
+  animation-duration: 150ms;
+  --tw-exit-opacity: initial;
+  --tw-exit-scale: initial;
+  --tw-exit-rotate: initial;
+  --tw-exit-translate-x: initial;
+  --tw-exit-translate-y: initial;
+}
+@utility fade-in-0 {
+  --tw-enter-opacity: 0;
+}
+@utility fade-out-0 {
+  --tw-exit-opacity: 0;
+}
+@utility zoom-in-95 {
+  --tw-enter-scale: 0.95;
+}
+@utility zoom-out-95 {
+  --tw-exit-scale: 0.95;
+}
+@utility slide-in-from-bottom-4 {
+  --tw-enter-translate-y: 1rem;
+}
+@utility slide-out-to-bottom {
+  --tw-exit-translate-y: 100%;
+}
+@utility slide-in-from-top {
+  --tw-enter-translate-y: -100%;
+}
+@utility slide-out-to-top {
+  --tw-exit-translate-y: -100%;
+}
+@utility slide-in-from-left {
+  --tw-enter-translate-x: -100%;
+}
+@utility slide-out-to-left {
+  --tw-exit-translate-x: -100%;
+}
+@utility slide-in-from-right {
+  --tw-enter-translate-x: 100%;
+}
+@utility slide-out-to-right {
+  --tw-exit-translate-x: 100%;
+}
+@utility animate-accordion-down {
+  animation: accordion-down 200ms ease-out;
+}
+@utility animate-accordion-up {
+  animation: accordion-up 200ms ease-out;
+}
+@utility duration-300 {
+  animation-duration: 300ms;
+}
+@utility duration-500 {
+  animation-duration: 500ms;
+}
+
+/* ─── Raw design tokens (never self-referencing) ─── */
+:root {
+  --bg-base: #ffffff;
+  --surf-base: #f8fafc;
+  --section-alt: #f8fafc;
+  --card-base: #ffffff;
+  --text-secondary: #475569;
+  --hover-base: #f1f5f9;
+  --border-base: #e2e8f0;
+  --primary-base: #2563eb;
+  --primary-soft-base: #dbeafe;
+  --accent-base: #2563eb;
+  --ring-base: #93c5fd;
+
+  --font-body: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-heading: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  --sidebar: hsl(0 0% 98%);
+  --sidebar-foreground: hsl(240 5.3% 26.1%);
+  --sidebar-primary: hsl(240 5.9% 10%);
+  --sidebar-primary-foreground: hsl(0 0% 98%);
+  --sidebar-accent: hsl(240 4.8% 95.9%);
+  --sidebar-accent-foreground: hsl(240 5.9% 10%);
+  --sidebar-border: hsl(220 13% 91%);
+  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+}
+
+/* ─── Dark mode ─── */
+.dark, .dark-theme {
+  --bg-base: #0a0a0b;
+  --surf-base: #111113;
+  --section-alt: #18191b;
+  --card-base: #212225;
+  --text-secondary: #a4a9b1;
+  --hover-base: #272a2d;
+  --border-base: #2d2f33;
+  --primary-base: #3b82f6;
+  --primary-soft-base: #1e3a5f;
+  --accent-base: #3b82f6;
+  --ring-base: #1d4ed8;
+}
+
+/* Override Radix .radix-themes defaults to match our palette */
+:where(.radix-themes) {
+  --color-background: #ffffff;
+  --color-surface: rgba(248, 250, 252, 0.85);
+}
+
+:is(.dark, .dark-theme) :where(.radix-themes:not(.light, .light-theme)) {
+  --color-background: #0a0a0b;
+  --color-surface: #111113;
+}
+
+/* @theme maps tokens to Tailwind ― no self-references */
+@theme {
+  --font-body: var(--font-body);
+  --font-heading: var(--font-heading);
+  --font-mono: var(--font-mono);
+
+  --color-background: var(--bg-base);
+  --color-surface: var(--surf-base);
+  --color-section-alt: var(--section-alt);
+  --color-card: var(--card-base);
+  --color-border: var(--border-base);
+  --color-primary: var(--primary-base);
+  --color-primary-soft: var(--primary-soft-base);
+  --color-text: var(--gray-12);
+  --color-text-secondary: var(--text-secondary);
+  --color-muted: var(--gray-11);
+  --color-accent: var(--accent-base);
+  --color-hover: var(--hover-base);
+  --color-ring: var(--ring-base);
+  --color-popover: var(--card-base);
+  --color-popover-foreground: var(--gray-12);
+}
+
+* {
+  border-color: var(--border-base);
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+*, *::before, *::after {
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition: none !important;
+  }
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+@utility container-main {
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+@utility section-padding {
+  padding-top: 6rem;
+  padding-bottom: 6rem;
+}
+
+@utility section-header {
+  margin-bottom: 3rem;
+}
+
+@utility section-label {
+  margin-bottom: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+}
+
+@utility section-title {
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+  color: var(--color-text);
+}
+
+@utility section-desc {
+  margin-top: 1rem;
+  font-size: 1.125rem;
+  line-height: 1.6;
+  color: var(--color-muted);
+  max-width: 36rem;
+}
+
+@utility card-hover {
+  transition: all 0.2s ease;
+}
+
+.card-hover:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 1px var(--color-ring);
+}
+
+.article-content p {
+  color: var(--color-muted);
+  font-size: 0.8125rem;
+  line-height: 1.8;
+}
+
+.article-content p + p {
+  margin-top: 1rem;
+}
+
+/* ─── GitHub README Compatibility Layer ─── */
+.github-readme {
+  max-width: none;
+  font-size: 0.875rem;
+  line-height: 1.7;
+  color: var(--color-text);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.github-readme > *:first-child { margin-top: 0; }
+.github-readme > *:last-child { margin-bottom: 0; }
+
+.github-readme p {
+  margin-block: 0.75rem;
+}
+
+.github-readme h1,
+.github-readme h2,
+.github-readme h3,
+.github-readme h4,
+.github-readme h5,
+.github-readme h6 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--color-text);
+}
+.github-readme h1 { font-size: 1.5rem; border-bottom: 1px solid var(--color-border); padding-bottom: 0.3rem; }
+.github-readme h2 { font-size: 1.25rem; border-bottom: 1px solid var(--color-border); padding-bottom: 0.25rem; }
+.github-readme h3 { font-size: 1.125rem; }
+.github-readme h4 { font-size: 1rem; }
+.github-readme h5,
+.github-readme h6 { font-size: 0.875rem; }
+
+.github-readme img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+}
+.github-readme img[align="center"],
+.github-readme p[align="center"] img {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+.github-readme img[align="right"] { float: right; margin-left: 1rem; margin-bottom: 0.5rem; }
+.github-readme img[align="left"] { float: left; margin-right: 1rem; margin-bottom: 0.5rem; }
+
+.github-readme a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+.github-readme a:hover { text-decoration: underline; }
+
+.github-readme hr {
+  margin: 1.5rem 0;
+  border: 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.github-readme ul,
+.github-readme ol {
+  padding-left: 2rem;
+  margin-block: 0.75rem;
+}
+.github-readme ul { list-style-type: disc; }
+.github-readme ol { list-style-type: decimal; }
+.github-readme li { margin-block: 0.25rem; }
+.github-readme li > ul,
+.github-readme li > ol { margin-block: 0; }
+
+.github-readme blockquote {
+  margin-block: 0.75rem;
+  padding: 0.25rem 1rem;
+  border-left: 3px solid var(--color-primary);
+  color: var(--color-muted);
+  background: var(--color-primary-soft);
+  border-radius: 0 6px 6px 0;
+}
+
+.github-readme pre {
+  margin-block: 1rem;
+  padding: 1rem;
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  -webkit-overflow-scrolling: touch;
+}
+.github-readme pre code {
+  background: none;
+  padding: 0;
+  font-size: inherit;
+  color: inherit;
+  border: none;
+}
+
+.github-readme code {
+  padding: 0.15em 0.35em;
+  border-radius: 4px;
+  background: var(--color-surface);
+  font-size: 0.8125em;
+  color: var(--color-primary);
+  border: 1px solid var(--color-border);
+}
+
+.github-readme table {
+  display: block;
+  max-width: 100%;
+  width: max-content;
+  overflow-x: auto;
+  border-collapse: collapse;
+  margin-block: 1rem;
+  font-size: 0.8125rem;
+  -webkit-overflow-scrolling: touch;
+}
+.github-readme table th,
+.github-readme table td {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-border);
+  text-align: left;
+}
+.github-readme table th {
+  background: var(--color-surface);
+  font-weight: 600;
+}
+.github-readme table tr:nth-child(even) td {
+  background: var(--color-primary-soft);
+}
+
+.github-readme input[type="checkbox"] {
+  margin-right: 0.375rem;
+  accent-color: var(--color-primary);
+  transform: scale(1.1);
+}
+
+.github-readme details {
+  margin-block: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+.github-readme summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+.github-readme details[open] summary {
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.github-readme .highlight {
+  background: transparent;
+}
+
+.github-readme p > img:only-child,
+.github-readme p > a:only-child > img:only-child {
+  display: block;
+}
+
+.github-readme svg {
+  max-width: 100%;
+  height: auto;
+  vertical-align: middle;
+}
+
+.github-readme p > a[href*="shields.io"] img,
+.github-readme p > img[src*="shields.io"] {
+  display: inline-block;
+  vertical-align: middle;
+  margin: 0.125rem 0.125rem;
+}
+
+.github-readme p > a[href*="github-readme-stats"] img,
+.github-readme p > img[src*="github-readme-stats"],
+.github-readme p > a[href*="github-profile-trophy"] img,
+.github-readme p > img[src*="github-profile-trophy"] {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.github-readme br {
+  content: "";
+  display: block;
+  margin: 0.25rem 0;
+}
+
+@keyframes github-readme-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.github-readme {
+  animation: github-readme-fade-in 0.3s ease-out;
+}
+
+@media (max-width: 767px) {
+  .github-readme {
+    font-size: 0.8125rem;
+  }
+  .github-readme pre {
+    font-size: 0.75rem;
+    padding: 0.75rem;
+  }
+  .github-readme h1 { font-size: 1.25rem; }
+  .github-readme h2 { font-size: 1.125rem; }
+  .github-readme h3 { font-size: 1rem; }
+  .github-readme table { font-size: 0.75rem; }
+  .github-readme img[align="right"],
+  .github-readme img[align="left"] {
+    float: none;
+    display: block;
+    margin: 0.75rem auto;
+  }
+}
+
+@media (max-width: 767px) {
+  main {
+    padding-bottom: 5rem;
+  }
+}
+
+.dark {
+  --sidebar: hsl(240 5.9% 10%);
+  --sidebar-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-primary: hsl(224.3 76.3% 48%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(240 3.7% 15.9%);
+  --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-border: hsl(240 3.7% 15.9%);
+  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+}
+
+@theme inline {
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --color-science-1: rgba(99,102,241,0.03);
+  --color-science-2: rgba(6,182,212,0.04);
+  --color-grid-line: rgba(99,102,241,0.04);
+}
+
+/* ─── Scientific Backgrounds ─── */
+@utility sci-neural {
+  background-image:
+    linear-gradient(rgba(99,102,241,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(99,102,241,0.03) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+@utility sci-blueprint {
+  background-image:
+    linear-gradient(rgba(99,102,241,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(99,102,241,0.04) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+@utility sci-dots {
+  background-image: radial-gradient(circle, rgba(99,102,241,0.06) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+@utility sci-circuit {
+  background-image:
+    linear-gradient(60deg, rgba(99,102,241,0.03) 25%, transparent 25%, transparent 75%, rgba(99,102,241,0.03) 75%),
+    linear-gradient(60deg, rgba(99,102,241,0.03) 25%, transparent 25%, transparent 75%, rgba(99,102,241,0.03) 75%);
+  background-size: 40px 40px;
+}
+
+/* ─── Editorial Typography ─── */
+@utility editorial-xl {
+  font-size: clamp(2.5rem, 5vw, 4.5rem);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+}
+@utility editorial-lg {
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+@utility editorial-md {
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+}
+@utility editorial-body {
+  font-size: clamp(1rem, 1.5vw, 1.125rem);
+  line-height: 1.7;
+  max-width: 38rem;
+}
+@utility editorial-label {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+}
+
+/* ─── Motion (minimal, academic) ─── */
+@utility fade-in {
+  animation: fadeIn 0.6s ease-out both;
+}
+@utility scale-in {
+  animation: scaleIn 0.5s ease-out both;
+}
+@utility slide-in {
+  animation: slideIn 0.5s ease-out both;
+}
+@utility overlay-in {
+  animation: overlayIn 0.4s ease-out both;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes overlayIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}

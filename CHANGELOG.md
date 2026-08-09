@@ -1,10 +1,37 @@
 # Changelog
 
-## [0.5.1] — 2026-06-30
+## [0.5.2] — 2026-07-05
 
-### Fixed
-- Remove broken Linear components from dashboard (build error)
-- Cleanup unused theme-init script
+### Added
+- **Workspace card redesign** — ProjectCard component redesigned with Radix UI design philosophy:
+  - Status badges with semantic emoji (🟢 Live, 🟡 In Progress, 🔵 Featured, ⚪ Completed)
+  - Creator section (avatar initial + name + university) revealed on hover
+  - Tech tags: max 3 visible, `+N` overflow with Radix Tooltip
+  - Metadata (contributors, rating) revealed on hover with delay
+  - Progress bar animates once on viewport entry (IntersectionObserver)
+  - Lightweight CTA "View Workspace →" with arrow slide on hover
+- **Showcase mock data**: `creator`, `university`, `contributors`, `rating`, `updatedAt`, `discussion` fields
+- **Hover card popup**: now shows discussion content (longer project description) instead of short desc
+
+### Changed
+- **Card styling**: removed glass/blur (`bg-surface/80 backdrop-blur-sm`) → solid `bg-card` on events page for cleaner white background rendering
+- **Card interactions**: `translateY(-4px)` + `scale(1.015)` + border→primary on hover (no glow/bounce)
+- **Card borders**: simplified `rounded-[24px]` → `rounded-xl`, `shadow-lg` → `shadow-sm`
+- **Status badges**: unified styling with `bg-surface ring-1 ring-border text-muted` — only emoji differentiates status
+- **Accent bar**: simplified from per-project gradient → `from-primary/20 to-primary/5`
+- **Accent border**: removed complex color extraction → `border-primary/20`
+- **Star icon**: hardcoded `fill-amber-400` → theme token `fill-accent`
+- **Events page text**: `text-[10px]` → `text-xs`, `text-muted` → `text-secondary` for readability on white background
+- **Events page icons**: `h-3 w-3` → `h-3.5 w-3.5 text-primary` for better visibility
+- **Hover card**: side changed from `top` to `right` on desktop
+
+### Removed
+- Gradient border glow layer from ProjectCard
+- `updatedAt` from card metadata (kept in HoverCard popup)
+- Unused `Clock` import from ProjectCard
+
+### Cancelled
+- **Python REST API migration** — cancelled, staying with current architecture
 
 ## [0.5.0] — 2026-06-27
 
