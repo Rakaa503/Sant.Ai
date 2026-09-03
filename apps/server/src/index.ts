@@ -1,7 +1,6 @@
 import { Hono } from "hono";
 import { serve } from "@hono/node-server";
 import { cors } from "hono/cors";
-import { createAuth } from "@santai/shared";
 
 import {
     securityHeaders,
@@ -9,23 +8,18 @@ import {
     trustedProxy,
 } from "./security";
 
+import {
+    auth,
+    serverURL,
+    webOrigin,
+} from "./auth";
+
+import account from "./routes/account";
+import search from "./routes/search";
+import articles from "./routes/data/articles";
+import article from "./routes/data/article";
+
 const port = Number(process.env.SERVER_PORT ?? 3001);
-
-const serverURL =
-    process.env.BETTER_AUTH_URL ?? `http://localhost:${port}`;
-
-const webOrigin =
-    process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
-
-if (!process.env.BETTER_AUTH_SECRET) {
-    throw new Error("BETTER_AUTH_SECRET is not set");
-}
-
-const auth = createAuth({
-    secret: process.env.BETTER_AUTH_SECRET,
-    baseURL: serverURL,
-    siteURL: webOrigin,
-});
 
 const app = new Hono();
 
@@ -76,30 +70,52 @@ app.use(
 /**
  * Health Check
  */
-app.get("/api/health", (c) =>
-    c.json({
+app.get("/api/health", (c) => {
+    return c.json({
         ok: true,
         service: "santai-server",
         time: new Date().toISOString(),
-    }),
-);
+    });
+});
 
 /**
  * Better Auth
  */
-app.all("/api/auth/*", (c) =>
-    auth.handler(c.req.raw),
-);
+app.all("/api/auth/*", (c) => {
+    return auth.handler(c.req.raw);
+});
+
+/**
+ * Account Routes
+ */
+app.route("/api/account", account);
+
+/**
+ * Search Routes
+ */
+app.route("/api/search", search);
+
+/**
+ * Article Routes
+ */
+app.route("/api/data/articles", articles);
+app.route("/api/data/articles", article);
 
 /**
  * Server
  */
-serve({ fetch: app.fetch, port }, (info) => {
-    console.log(
-        `[server] auth baseURL=${serverURL} webOrigin=${webOrigin}`,
-    );
+serve(
+    {
+        fetch: app.fetch,
+        port,
+    },
+    (info) => {
+        console.log(
+            `[server] auth baseURL=${serverURL} webOrigin=${webOrigin}`,
+        );
 
-    console.log(
-        `[server] listening on http://localhost:${info.port}`,
-    );
-});
+        console.log(
+            `[server] listening on http://localhost:${info.port}`,
+        );
+    },
+);
