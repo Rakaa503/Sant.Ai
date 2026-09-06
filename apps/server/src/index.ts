@@ -18,6 +18,10 @@ import account from "./routes/account";
 import search from "./routes/search";
 import articles from "./routes/data/articles";
 import article from "./routes/data/article";
+import keywords from "./routes/data/keywords";
+import sources from "./routes/data/sources";
+import stats from "./routes/data/stats";
+import youtube from "./routes/data/youtube";
 
 const port = Number(process.env.SERVER_PORT ?? 3001);
 
@@ -100,6 +104,26 @@ app.route("/api/search", search);
  */
 app.route("/api/data/articles", articles);
 app.route("/api/data/articles", article);
+
+/**
+ * Keyword Routes
+ */
+app.route("/api/data/keywords", keywords);
+
+/**
+ * Source Routes
+ */
+app.route("/api/data/sources", sources);
+
+/**
+ * Stats Routes
+ */
+app.route("/api/data/stats", stats);
+
+/**
+ * YouTube Routes
+ */
+app.route("/api/data/youtube", youtube);
 
 /**
  * Server
